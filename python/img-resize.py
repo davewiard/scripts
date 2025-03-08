@@ -7,6 +7,8 @@ import sys
 import PythonMagick
 from pathlib import Path
 
+SIZE = 3000
+
 
 def resize(file):
     file_path = Path(file)
@@ -20,20 +22,20 @@ def resize(file):
     ratio = 0
 
     if h > w:
-        if h <= 4000:
+        if h <= SIZE:
             return
 
         # portrait image
-        ratio = 4000 / float(h)
-        new_h = 4000
+        ratio = SIZE / float(h)
+        new_h = SIZE
         new_w = int(w * ratio)
     else:
-        if w <= 4000:
+        if w <= SIZE:
             return
 
         # landscape image
-        ratio = 4000 / float(w)
-        new_w = 4000
+        ratio = SIZE / float(w)
+        new_w = SIZE
         new_h = int(h * ratio)
 
     image.resize('{}x{}'.format(new_w, new_h))
