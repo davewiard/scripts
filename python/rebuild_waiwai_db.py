@@ -185,10 +185,10 @@ def insert_security_records(filename):
 
                 row[2] = row[2].replace('"', '')
 
-                columns = 'uid, symbol, name, instrument_type, exchange, created_timestamp, modified_timestamp'
-                statement = 'INSERT INTO {} ({}) VALUES (?, ?, ?, ?, ?, ?, ?)'.format(TABLE_NAME_SECURITY, columns)
+                columns = 'uid, symbol, name, currency, exchange, instrument_type, created_timestamp, modified_timestamp'
+                statement = 'INSERT INTO {} ({}) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'.format(TABLE_NAME_SECURITY, columns)
                 try:
-                    cur.execute(statement, (row[0], row[1], row[2], row[3], row[4], TIMESTAMP, TIMESTAMP))
+                    cur.execute(statement, (row[0], row[1], row[2], row[3], row[4], row[6], TIMESTAMP, TIMESTAMP))
                     if index == 1000:
                         cur.execute('COMMIT')
                         index = -1
