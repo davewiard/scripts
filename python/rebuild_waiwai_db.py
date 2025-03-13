@@ -114,7 +114,7 @@ def insert_portfolio_records():
 
             cur.execute('COMMIT')
         except conn.Error:
-            print('Insert event type failed!')
+            print('Insert portfolio failed!')
             print(conn.Error)
             cur.execute('ROLLBACK')
 
