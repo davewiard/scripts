@@ -78,12 +78,90 @@ USER_VALUES = [{
     'modified_timestamp': int(time.time()),
 },]
 
-COLUMNS_CATEGORY = 'uid TEXT NOT NULL, user_uid TEXT NOT NULL, name TEXT NOT NULL, sort_order INTEGER, created_timestamp INTEGER NOT NULL, modified_timestamp INTEGER NOT NULL, CONSTRAINT category_pk PRIMARY KEY (uid), CONSTRAINT user_FK FOREIGN KEY (user_uid) REFERENCES user (uid) ON DELETE CASCADE'
-COLUMNS_LIST = 'uid TEXT NOT NULL, user_uid TEXT NOT NULL, name TEXT NOT NULL, notes TEXT, sort_order INTEGER, created_timestamp INTEGER NOT NULL, modified_timestamp INTEGER NOT NULL, CONSTRAINT list_pk PRIMARY KEY (uid), CONSTRAINT user_FK FOREIGN KEY (user_uid) REFERENCES user (uid) ON DELETE CASCADE'
-COLUMNS_LIST_ITEM = 'uid TEXT NOT NULL, user_uid TEXT NOT NULL, list_uid TEXT NOT NULL, category_uid TEXT, name TEXT NOT NULL, quantity INTEGER, crossed_off INTEGER, crossed_off_timestamp INTEGER, notes TEXT, sort_order INTEGER, created_timestamp INTEGER NOT NULL, modified_timestamp INTEGER NOT NULL, CONSTRAINT list_item_pk PRIMARY KEY (uid), CONSTRAINT list_FK FOREIGN KEY (list_uid) REFERENCES list (uid) ON DELETE CASCADE, CONSTRAINT category_FK FOREIGN KEY (category_uid) REFERENCES category (uid), CONSTRAINT user_FK FOREIGN KEY (user_uid) REFERENCES user (uid) ON DELETE CASCADE'
-COLUMNS_TAG = 'uid TEXT NOT NULL, user_uid TEXT NOT NULL, name TEXT NOT NULL, color TEXT, created_timestamp INTEGER NOT NULL, modified_timestamp INTEGER NOT NULL, CONSTRAINT tag_pk PRIMARY KEY (uid), CONSTRAINT user_FK FOREIGN KEY (user_uid) REFERENCES user (uid) ON DELETE CASCADE'
-COLUMNS_TAG_LIST_ITEM = 'uid TEXT NOT NULL, user_uid TEXT NOT NULL, tag_uid TEXT NOT NULL, list_item_uid TEXT NOT NULL, created_timestamp INTEGER NOT NULL, modified_timestamp INTEGER NOT NULL, CONSTRAINT tag_list_item_pk PRIMARY KEY (uid), CONSTRAINT tag_FK FOREIGN KEY (tag_uid) REFERENCES tag(uid) ON DELETE CASCADE, CONSTRAINT tag_list_item_list_item_FK FOREIGN KEY (list_item_uid) REFERENCES list_item(uid) ON DELETE CASCADE, CONSTRAINT user_FK FOREIGN KEY (user_uid) REFERENCES user (uid) ON DELETE CASCADE'
-COLUMNS_USER = 'uid TEXT NOT NULL, first_name TEXT NOT NULL, last_name TEXT NOT NULL, email TEXT NOT NULL, api_key TEXT NOT NULL, last_sign_in_timestamp INTEGER NOT NULL, created_timestamp INTEGER NOT NULL, modified_timestamp INTEGER NOT NULL, CONSTRAINT user_pk PRIMARY KEY (uid)'
+COLUMNS_CATEGORY = (
+    'uid TEXT NOT NULL,'
+    #'user_uid TEXT NOT NULL,'
+    'name TEXT NOT NULL,'
+    'sort_order INTEGER,'
+    'created_timestamp INTEGER NOT NULL,'
+    'modified_timestamp INTEGER NOT NULL,'
+    #'CONSTRAINT category_pk PRIMARY KEY (uid),'
+    #'CONSTRAINT user_FK FOREIGN KEY (user_uid) REFERENCES user (uid) ON DELETE CASCADE'
+    'CONSTRAINT category_pk PRIMARY KEY (uid)'
+)
+COLUMNS_LIST = (
+    'uid TEXT NOT NULL,'
+    #'user_uid TEXT NOT NULL,'
+    'name TEXT NOT NULL,'
+    'notes TEXT,'
+    'sort_order INTEGER,'
+    'created_timestamp INTEGER NOT NULL,'
+    'modified_timestamp INTEGER NOT NULL,'
+    #'CONSTRAINT list_pk PRIMARY KEY (uid),'
+    #'CONSTRAINT user_FK FOREIGN KEY (user_uid) REFERENCES user (uid) ON DELETE CASCADE'
+    'CONSTRAINT list_pk PRIMARY KEY (uid)'
+)
+COLUMNS_LIST_ITEM = (
+    'uid TEXT NOT NULL,'
+    #'user_uid TEXT NOT NULL,'
+    'list_uid TEXT NOT NULL,'
+    'category_uid TEXT,'
+    'name TEXT NOT NULL,'
+    'quantity INTEGER,'
+    'crossed_off INTEGER,'
+    'crossed_off_timestamp INTEGER,'
+    'notes TEXT,'
+    'photo_uri TEXT,'
+    'photo_offset_x REAL,'
+    'photo_offset_y REAL,'
+    'photo_scale REAL,'
+    'sort_order INTEGER,'
+    'created_timestamp INTEGER NOT NULL,'
+    'modified_timestamp INTEGER NOT NULL,'
+    #'CONSTRAINT list_item_pk PRIMARY KEY (uid),'
+    #'CONSTRAINT list_FK FOREIGN KEY (list_uid) REFERENCES list (uid) ON DELETE CASCADE,'
+    #'CONSTRAINT category_FK FOREIGN KEY (category_uid) REFERENCES category (uid),'
+    #'CONSTRAINT user_FK FOREIGN KEY (user_uid) REFERENCES user (uid) ON DELETE CASCADE'
+    'CONSTRAINT list_item_pk PRIMARY KEY (uid),'
+    'CONSTRAINT list_FK FOREIGN KEY (list_uid) REFERENCES list (uid) ON DELETE CASCADE,'
+    'CONSTRAINT category_FK FOREIGN KEY (category_uid) REFERENCES category (uid)'
+)
+COLUMNS_TAG = (
+    'uid TEXT NOT NULL,'
+    #'user_uid TEXT NOT NULL,'
+    'name TEXT NOT NULL, color TEXT,'
+    'created_timestamp INTEGER NOT NULL,'
+    'modified_timestamp INTEGER NOT NULL,'
+    #'CONSTRAINT tag_pk PRIMARY KEY (uid),'
+    #'CONSTRAINT user_FK FOREIGN KEY (user_uid) REFERENCES user (uid) ON DELETE CASCADE'
+    'CONSTRAINT tag_pk PRIMARY KEY (uid)'
+)
+COLUMNS_TAG_LIST_ITEM = (
+    'uid TEXT NOT NULL,'
+    #'user_uid TEXT NOT NULL,'
+    'tag_uid TEXT NOT NULL,'
+    'list_item_uid TEXT NOT NULL,'
+    'created_timestamp INTEGER NOT NULL,'
+    'modified_timestamp INTEGER NOT NULL,'
+    #'CONSTRAINT tag_list_item_pk PRIMARY KEY (uid),'
+    #'CONSTRAINT tag_FK FOREIGN KEY (tag_uid) REFERENCES tag(uid) ON DELETE CASCADE,'
+    #'CONSTRAINT tag_list_item_list_item_FK FOREIGN KEY (list_item_uid) REFERENCES list_item(uid) ON DELETE CASCADE,'
+    #'CONSTRAINT user_FK FOREIGN KEY (user_uid) REFERENCES user (uid) ON DELETE CASCADE'
+    'CONSTRAINT tag_list_item_pk PRIMARY KEY (uid),'
+    'CONSTRAINT tag_FK FOREIGN KEY (tag_uid) REFERENCES tag(uid) ON DELETE CASCADE,'
+    'CONSTRAINT tag_list_item_list_item_FK FOREIGN KEY (list_item_uid) REFERENCES list_item(uid) ON DELETE CASCADE'
+)
+COLUMNS_USER = (
+    'uid TEXT NOT NULL,'
+    'first_name TEXT NOT NULL,'
+    'last_name TEXT NOT NULL,'
+    'email TEXT NOT NULL,'
+    'api_key TEXT NOT NULL,'
+    'last_sign_in_timestamp INTEGER NOT NULL,'
+    'created_timestamp INTEGER NOT NULL,'
+    'modified_timestamp INTEGER NOT NULL,'
+    'CONSTRAINT user_pk PRIMARY KEY (uid)'
+)
 TABLE_NAME_CATEGORY = r'category'
 TABLE_NAME_LIST = r'list'
 TABLE_NAME_LIST_ITEM = r'list_item'
@@ -97,6 +175,7 @@ EASYLISTS_DB_PATH = PROJECT_PATH + r'/data/src/main/assets/easy-lists.db'
 #region create_table()
 def create_table(table_name, columns):
     print('Creating table: {}'.format(table_name))
+    print('    Columns: {}'.format(columns))
     with sqlite3.connect(EASYLISTS_DB_PATH) as conn:
         conn.isolation_level = None
         cur = conn.cursor()
@@ -105,7 +184,8 @@ def create_table(table_name, columns):
             cur.execute(statement)
         except conn.Error:
             print('Create table {} failed!'.format(table_name))
-            print(conn.Error)
+            print('    statement: {}'.format(statement))
+            print(str(conn.Error))
             exit()
 #endregion
 
@@ -161,8 +241,10 @@ def insert_category_records():
             # cur.execute('BEGIN')
 
             for name in CATEGORY_VALUES:
-                statement = 'INSERT INTO category (uid, user_uid, name, created_timestamp, modified_timestamp) VALUES (?, ?, ?, ?, ?)'
-                cur.execute(statement, (str(uuid4()), user_rows[0][0], name, TIMESTAMP, TIMESTAMP))
+                #statement = 'INSERT INTO category (uid, user_uid, name, created_timestamp, modified_timestamp) VALUES (?, ?, ?, ?, ?)'
+                #cur.execute(statement, (str(uuid4()), user_rows[0][0], name, TIMESTAMP, TIMESTAMP))
+                statement = 'INSERT INTO category (uid, name, created_timestamp, modified_timestamp) VALUES (?, ?, ?, ?)'
+                cur.execute(statement, (str(uuid4()), name, TIMESTAMP, TIMESTAMP))
 
             # cur.execute('COMMIT')
         except conn.Error:
@@ -189,8 +271,10 @@ def insert_list_records():
                 name = key
                 notes = LIST_VALUES[key]
 
-                statement = 'INSERT INTO list (uid, user_uid, name, notes, created_timestamp, modified_timestamp) VALUES (?, ?, ?, ?, ?, ?)'
-                cur.execute(statement, (str(uuid4()), user_rows[0][0], name, notes, TIMESTAMP, TIMESTAMP))
+                #statement = 'INSERT INTO list (uid, user_uid, name, notes, created_timestamp, modified_timestamp) VALUES (?, ?, ?, ?, ?, ?)'
+                #cur.execute(statement, (str(uuid4()), user_rows[0][0], name, notes, TIMESTAMP, TIMESTAMP))
+                statement = 'INSERT INTO list (uid, name, notes, created_timestamp, modified_timestamp) VALUES (?, ?, ?, ?, ?)'
+                cur.execute(statement, (str(uuid4()), name, notes, TIMESTAMP, TIMESTAMP))
 
             cur.execute('COMMIT')
         except conn.Error:
@@ -253,8 +337,10 @@ def insert_list_item_records():
 
                 print(name, crossed_off)
 
-                statement = 'INSERT INTO list_item (uid, user_uid, list_uid, category_uid, name, notes, crossed_off, created_timestamp, modified_timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
-                cur.execute(statement, (str(uuid4()), user_rows[0][0], list_uid, category_uid, name, notes, crossed_off, TIMESTAMP, TIMESTAMP))
+                #statement = 'INSERT INTO list_item (uid, user_uid, list_uid, category_uid, name, notes, crossed_off, created_timestamp, modified_timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
+                #cur.execute(statement, (str(uuid4()), user_rows[0][0], list_uid, category_uid, name, notes, crossed_off, TIMESTAMP, TIMESTAMP))
+                statement = 'INSERT INTO list_item (uid, list_uid, category_uid, name, notes, crossed_off, created_timestamp, modified_timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+                cur.execute(statement, (str(uuid4()), list_uid, category_uid, name, notes, crossed_off, TIMESTAMP, TIMESTAMP))
 
             cur.execute('COMMIT')
         except conn.Error:
@@ -278,8 +364,10 @@ def insert_tag_records():
             cur.execute('BEGIN')
 
             for name in TAG_VALUES:
-                statement = 'INSERT INTO tag (uid, user_uid, name, created_timestamp, modified_timestamp) VALUES (?, ?, ?, ?, ?)'
-                cur.execute(statement, (str(uuid4()), user_rows[0][0], name, TIMESTAMP, TIMESTAMP))
+                #statement = 'INSERT INTO tag (uid, user_uid, name, created_timestamp, modified_timestamp) VALUES (?, ?, ?, ?, ?)'
+                #cur.execute(statement, (str(uuid4()), user_rows[0][0], name, TIMESTAMP, TIMESTAMP))
+                statement = 'INSERT INTO tag (uid, name, created_timestamp, modified_timestamp) VALUES (?, ?, ?, ?)'
+                cur.execute(statement, (str(uuid4()), name, TIMESTAMP, TIMESTAMP))
 
             cur.execute('COMMIT')
         except conn.Error:
@@ -326,8 +414,10 @@ def insert_tag_list_item_records():
                     tag_uid = [u for u in tag_rows if u[1] == 'Checked Baggage'][0][0]
 
                 if tag_uid != None:
-                    statement = 'INSERT INTO tag_list_item (uid, user_uid, tag_uid, list_item_uid, created_timestamp, modified_timestamp) VALUES (?, ?, ?, ?, ?, ?)'
-                    cur.execute(statement, (str(uuid4()), user_rows[0][0], tag_uid, list_item_uid, TIMESTAMP, TIMESTAMP))
+                    #statement = 'INSERT INTO tag_list_item (uid, user_uid, tag_uid, list_item_uid, created_timestamp, modified_timestamp) VALUES (?, ?, ?, ?, ?, ?)'
+                    #cur.execute(statement, (str(uuid4()), user_rows[0][0], tag_uid, list_item_uid, TIMESTAMP, TIMESTAMP))
+                    statement = 'INSERT INTO tag_list_item (uid, tag_uid, list_item_uid, created_timestamp, modified_timestamp) VALUES (?, ?, ?, ?, ?)'
+                    cur.execute(statement, (str(uuid4()), tag_uid, list_item_uid, TIMESTAMP, TIMESTAMP))
 
             cur.execute('COMMIT')
         except conn.Error:
@@ -390,3 +480,5 @@ if __name__ == '__main__':
     create_table(TABLE_NAME_TAG_LIST_ITEM, COLUMNS_TAG_LIST_ITEM)
     insert_tag_list_item_records()
 
+    print('')
+    print('Created Projects/EasyLists/easy-lists-android/data/src/main/assets/easy-lists.db')
