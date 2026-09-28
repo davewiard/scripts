@@ -70,9 +70,9 @@ TAG_VALUES = (
 )
 
 USER_VALUES = [{
-    'first_name': 'Kawika',
-    'last_name': 'Kawika',
-    'email': 'demo@easy-lists.com',
+    'first_name': 'Koa',
+    'last_name': 'Studio',
+    'email': 'koa.studio.software@gmail.com',
     'last_sign_in_timestamp': int(time.time()),
     'created_timestamp': int(time.time()),
     'modified_timestamp': int(time.time()),
@@ -95,6 +95,8 @@ COLUMNS_LIST = (
     'name TEXT NOT NULL,'
     'notes TEXT,'
     'sort_order INTEGER,'
+    'is_dirty INTEGER NOT NULL DEFAULT 0,'
+    'is_deleted INTEGER NOT NULL DEFAULT 0,'
     'created_timestamp INTEGER NOT NULL,'
     'modified_timestamp INTEGER NOT NULL,'
     #'CONSTRAINT list_pk PRIMARY KEY (uid),'
@@ -116,6 +118,8 @@ COLUMNS_LIST_ITEM = (
     'photo_offset_y REAL,'
     'photo_scale REAL,'
     'sort_order INTEGER,'
+    'is_dirty INTEGER NOT NULL DEFAULT 0,'
+    'is_deleted INTEGER NOT NULL DEFAULT 0,'
     'created_timestamp INTEGER NOT NULL,'
     'modified_timestamp INTEGER NOT NULL,'
     #'CONSTRAINT list_item_pk PRIMARY KEY (uid),'
@@ -262,7 +266,7 @@ def insert_list_records():
         cur = conn.cursor()
 
         cur.execute('SELECT uid FROM user')
-        user_rows = cur.fetchall()
+        #user_rows = cur.fetchall()
 
         try:
             cur.execute('BEGIN')
