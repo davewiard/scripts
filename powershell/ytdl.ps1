@@ -18,5 +18,5 @@ if ($?) {
     Write-Output "Download failed"
 }
 
-$a = Read-Host "Press enter to continue"
+#$a = Read-Host "Press enter to continue"
 
