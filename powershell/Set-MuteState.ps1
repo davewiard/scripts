@@ -10,7 +10,7 @@
 
 .COPYRIGHT
 
-.TAGS Powershell audio api
+.TAGS Powershell Audio API
 
 .LICENSEURI
 
@@ -30,13 +30,37 @@
 #>
 
 <#
-
 .DESCRIPTION
-Powershell script to Auto Mute you sound devices like headphones, if they are accidently unplugged.
+Powershell script to automatically change the mute state of your sound physically plugged-in
+headphones are plugged in or unplugged.
 
+To launch this script automatically when your system starts you can add it to your scheduled tasks.
+1. Open Task Scheduler and create a new task.
+2. Give the task a name and a description.
+
+General
+1. Under security warnings, check the box to run whether the user is logged in or not.
+2. Check the "Hidden" box.
+
+Trigger
+1. Set the trigger to "At log in".
+2. Set the action to "Start a program" and browse to the location of this script.
+3. Configure any additional settings as needed and save the task.
+
+Actions
+1. Set the action to "Start a program".
+2. Set the Program/script to "powershell".
+3. Set the Add arguments to the following. This bypasses the prompt PowerShell typically shows
+    when running scripts when the execution policy is not set to bypass.
+      "-ExecutionPolicy Bypass .\Set-MuteState.ps1".
+4.Configure the Start in field to the directory where this script is located.
+
+Make any other changes to the task, as desired, and save it. Reboot for the task to take effect
+automatically. Optionally, you can manually trigger the task from the Task Scheduler to verify
+that it works as expected.
 #>
 
-[cmdletbinding()]
+[CmdletBinding()]
 Param()
 
 #Adding definitions for accessing the Audio API
@@ -85,28 +109,26 @@ public class Audio {
 '@ -Verbose
 
 
-While($true)
-{
-    #Clean all events in the current session since its in a infinite loop, to make a fresh start when loop begins
-    Get-Event | Remove-Event -ErrorAction SilentlyContinue
+While ($true) {
+  # clean all events in the current session since its in a infinite loop,
+  # to make a fresh start when loop begins
+  Get-Event | Remove-Event -ErrorAction SilentlyContinue
 
-    #Registering the Event and Waiting for event to be triggered
-    Register-WmiEvent -Class Win32_DeviceChangeEvent
-    Wait-Event -OutVariable Event |Out-Null
+  # registering the event and waiting for event to be triggered
+  Register-WmiEvent -Class Win32_DeviceChangeEvent
+  Wait-Event -OutVariable Event | Out-Null
 
-    $EventType = $Event.sourceargs.newevent | `
+  $EventType = $Event.sourceargs.newevent | `
     Sort-Object TIME_CREATED -Descending | `
     Select-Object EventType -ExpandProperty EventType -First 1
 
-    #Conditional logic to handle, When to Mute/unMute the machine using Audio API
-    If($EventType -eq 3)
-    {
-        [Audio]::Mute = $true
-        Write-Verbose "Muted [$((Get-Date).tostring())]"
-    }
-    elseif($EventType -eq 2 -and [Audio]::Mute -eq $true)
-    {
-        [Audio]::Mute = $false
-        Write-Verbose "UnMuted [$((Get-Date).tostring())]"
-    }
+  # conditional logic to handle when to mute/unmute the machine using the Audio API
+  if ($EventType -eq 3) {
+    [Audio]::Mute = $true
+    Write-Verbose "Muted [$((Get-Date).tostring())]"
+  }
+  elseif ($EventType -eq 2 -and [Audio]::Mute -eq $true) {
+    [Audio]::Mute = $false
+    Write-Verbose "UnMuted [$((Get-Date).tostring())]"
+  }
 }
