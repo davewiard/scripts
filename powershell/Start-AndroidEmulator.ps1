@@ -3,11 +3,21 @@
 # Version: 2.0
 # Description: Professional Android emulator launcher with menu system
 
+[CmdletBinding()]
+Param(
+    [Parameter(Mandatory=$false)]
+    [string]$AutoStartAvdName = "",
+
+    [Parameter(Mandatory=$false)]
+    [ValidateSet("quick", "headless", "cold", "standard", "performance")]
+    [string]$Mode = ""
+)
+
 # ==== Configuration ====
 $script:Config = @{
     EmulatorPath = "$env:LOCALAPPDATA\Android\Sdk\emulator\emulator.exe"
     AdbPath = "$env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe"
-    AvdName = "Pixel_Tablet"
+    AvdName = $AutoStartAvdName
     DefaultMemory = 2048
     DefaultCores = 4
     BootTimeout = 120
@@ -509,9 +519,9 @@ function Start-EmulatorLauncher {
     #>
 
     # Handle command line arguments for direct launch
-    if ($args.Count -gt 0) {
+    if ($Mode -ne "") {
         $validModes = @("quick", "headless", "cold", "standard", "performance")
-        $requestedMode = $args[0].ToLower()
+        $requestedMode = $Mode.ToLower()
 
         if ($requestedMode -in $validModes) {
             Write-Host "[INFO] Direct launch mode: $requestedMode" -ForegroundColor Cyan
@@ -547,6 +557,7 @@ function Start-EmulatorLauncher {
 
 # ==== Script Execution ====
 try {
+    Write-Output "Starting Android Emulator Launcher...${args}"
     Start-EmulatorLauncher @args
 }
 catch {
