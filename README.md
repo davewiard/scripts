@@ -10,4 +10,4 @@
 
  ----
 
-Reposity for scripts that I use. Many of these will be Python and Bash scripts.
+Reposity for scripts that I use. Many of these will be Python, PowerShell, and Bash scripts.
