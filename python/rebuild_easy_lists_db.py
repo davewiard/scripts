@@ -78,19 +78,15 @@ USER_VALUES = [{
 },]
 
 COLUMNS_CATEGORY = (
-    'uid TEXT NOT NULL,'
-    #'user_uid TEXT NOT NULL,'
+    'category_id TEXT NOT NULL,'
     'name TEXT NOT NULL,'
     'sort_order INTEGER,'
     'created_timestamp INTEGER NOT NULL,'
     'modified_timestamp INTEGER NOT NULL,'
-    #'CONSTRAINT category_pk PRIMARY KEY (uid),'
-    #'CONSTRAINT user_FK FOREIGN KEY (user_uid) REFERENCES user (uid) ON DELETE CASCADE'
-    'CONSTRAINT category_pk PRIMARY KEY (uid)'
+    'CONSTRAINT category_pk PRIMARY KEY (category_id)'
 )
 COLUMNS_LIST = (
-    'uid TEXT NOT NULL,'
-    #'user_uid TEXT NOT NULL,'
+    'list_id TEXT NOT NULL,'
     'name TEXT NOT NULL,'
     'notes TEXT,'
     'sort_order INTEGER,'
@@ -98,15 +94,12 @@ COLUMNS_LIST = (
     'is_deleted INTEGER NOT NULL DEFAULT 0,'
     'created_timestamp INTEGER NOT NULL,'
     'modified_timestamp INTEGER NOT NULL,'
-    #'CONSTRAINT list_pk PRIMARY KEY (uid),'
-    #'CONSTRAINT user_FK FOREIGN KEY (user_uid) REFERENCES user (uid) ON DELETE CASCADE'
-    'CONSTRAINT list_pk PRIMARY KEY (uid)'
+    'CONSTRAINT list_pk PRIMARY KEY (list_id)'
 )
 COLUMNS_LIST_ITEM = (
-    'uid TEXT NOT NULL,'
-    #'user_uid TEXT NOT NULL,'
-    'list_uid TEXT NOT NULL,'
-    'category_uid TEXT,'
+    'list_item_id TEXT NOT NULL,'
+    'list_id TEXT NOT NULL,'
+    'category_id TEXT,'
     'name TEXT NOT NULL,'
     'quantity INTEGER,'
     'crossed_off INTEGER,'
@@ -121,56 +114,45 @@ COLUMNS_LIST_ITEM = (
     'is_deleted INTEGER NOT NULL DEFAULT 0,'
     'created_timestamp INTEGER NOT NULL,'
     'modified_timestamp INTEGER NOT NULL,'
-    #'CONSTRAINT list_item_pk PRIMARY KEY (uid),'
-    #'CONSTRAINT list_FK FOREIGN KEY (list_uid) REFERENCES list (uid) ON DELETE CASCADE,'
-    #'CONSTRAINT category_FK FOREIGN KEY (category_uid) REFERENCES category (uid),'
-    #'CONSTRAINT user_FK FOREIGN KEY (user_uid) REFERENCES user (uid) ON DELETE CASCADE'
-    'CONSTRAINT list_item_pk PRIMARY KEY (uid),'
-    'CONSTRAINT list_FK FOREIGN KEY (list_uid) REFERENCES list (uid) ON DELETE CASCADE,'
-    'CONSTRAINT category_FK FOREIGN KEY (category_uid) REFERENCES category (uid)'
+    'CONSTRAINT list_item_pk PRIMARY KEY (list_item_id),'
+    'CONSTRAINT list_FK FOREIGN KEY (list_id) REFERENCES list (list_id) ON DELETE CASCADE,'
+    'CONSTRAINT category_FK FOREIGN KEY (category_id) REFERENCES category (category_id)'
 )
 COLUMNS_PROVIDER_LINKS = (
     'provider TEXT NOT NULL,'
     'provider_user_id TEXT NOT NULL,'
-    'uid TEXT NOT NULL,'
+    'user_id TEXT NOT NULL,'
     'created_timestamp INTEGER NOT NULL,'
     'modified_timestamp INTEGER NOT NULL,'
-    'CONSTRAINT provider_links_fk FOREIGN KEY (uid) REFERENCES users (uid) ON DELETE CASCADE'
+    'CONSTRAINT provider_links_fk FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE'
 )
 COLUMNS_TAG = (
-    'uid TEXT NOT NULL,'
-    #'user_uid TEXT NOT NULL,'
+    'tag_id TEXT NOT NULL,'
     'name TEXT NOT NULL, color TEXT,'
     'created_timestamp INTEGER NOT NULL,'
     'modified_timestamp INTEGER NOT NULL,'
-    #'CONSTRAINT tag_pk PRIMARY KEY (uid),'
-    #'CONSTRAINT user_FK FOREIGN KEY (user_uid) REFERENCES user (uid) ON DELETE CASCADE'
-    'CONSTRAINT tag_pk PRIMARY KEY (uid)'
+    'CONSTRAINT tag_pk PRIMARY KEY (tag_id)'
 )
 COLUMNS_TAG_LIST_ITEM = (
-    'uid TEXT NOT NULL,'
-    #'user_uid TEXT NOT NULL,'
-    'tag_uid TEXT NOT NULL,'
-    'list_item_uid TEXT NOT NULL,'
+    'tag_list_item_id TEXT NOT NULL,'
+    'tag_id TEXT NOT NULL,'
+    'list_item_id TEXT NOT NULL,'
     'created_timestamp INTEGER NOT NULL,'
     'modified_timestamp INTEGER NOT NULL,'
-    #'CONSTRAINT tag_list_item_pk PRIMARY KEY (uid),'
-    #'CONSTRAINT tag_FK FOREIGN KEY (tag_uid) REFERENCES tag(uid) ON DELETE CASCADE,'
-    #'CONSTRAINT tag_list_item_list_item_FK FOREIGN KEY (list_item_uid) REFERENCES list_item(uid) ON DELETE CASCADE,'
-    #'CONSTRAINT user_FK FOREIGN KEY (user_uid) REFERENCES user (uid) ON DELETE CASCADE'
-    'CONSTRAINT tag_list_item_pk PRIMARY KEY (uid),'
-    'CONSTRAINT tag_FK FOREIGN KEY (tag_uid) REFERENCES tag(uid) ON DELETE CASCADE,'
-    'CONSTRAINT tag_list_item_list_item_FK FOREIGN KEY (list_item_uid) REFERENCES list_item(uid) ON DELETE CASCADE'
+    'CONSTRAINT tag_list_item_pk PRIMARY KEY (tag_list_item_id),'
+    'CONSTRAINT tag_FK FOREIGN KEY (tag_id) REFERENCES tag(tag_id) ON DELETE CASCADE,'
+    'CONSTRAINT tag_list_item_list_item_FK FOREIGN KEY (list_item_id) REFERENCES list_item(list_item_id) ON DELETE CASCADE'
 )
 COLUMNS_USERS = (
-    'uid TEXT NOT NULL,'
+    'user_id TEXT NOT NULL,'
     'email TEXT NOT NULL,'
     'display_name TEXT,'
     'profile_picture_url TEXT,'
     'sync_enabled BOOLEAN NOT NULL DEFAULT FALSE,'
     'created_timestamp INTEGER NOT NULL,'
     'modified_timestamp INTEGER NOT NULL,'
-    'CONSTRAINT user_pk PRIMARY KEY (uid)'
+    'CONSTRAINT user_pk PRIMARY KEY (user_id),'
+    'CONSTRAINT uq_users_email UNIQUE (email)'
 )
 TABLE_NAME_CATEGORY = r'category'
 TABLE_NAME_LIST = r'list'
@@ -244,7 +226,7 @@ def insert_category_records():
         # conn.set_trace_callback(print)
         cur = conn.cursor()
 
-        cur.execute('SELECT uid FROM users')
+        cur.execute('SELECT user_id FROM users')
         user_rows = cur.fetchall()
         # print('user_rows', user_rows)
 
@@ -254,7 +236,7 @@ def insert_category_records():
             for name in CATEGORY_VALUES:
                 #statement = 'INSERT INTO category (uid, user_uid, name, created_timestamp, modified_timestamp) VALUES (?, ?, ?, ?, ?)'
                 #cur.execute(statement, (str(uuid4()), user_rows[0][0], name, TIMESTAMP, TIMESTAMP))
-                statement = 'INSERT INTO category (uid, name, created_timestamp, modified_timestamp) VALUES (?, ?, ?, ?)'
+                statement = 'INSERT INTO category (category_id, name, created_timestamp, modified_timestamp) VALUES (?, ?, ?, ?)'
                 cur.execute(statement, (str(uuid4()), name, TIMESTAMP, TIMESTAMP))
 
             # cur.execute('COMMIT')
@@ -272,7 +254,7 @@ def insert_list_records():
         conn.isolation_level = None
         cur = conn.cursor()
 
-        cur.execute('SELECT uid FROM users')
+        cur.execute('SELECT user_id FROM users')
         #user_rows = cur.fetchall()
 
         try:
@@ -284,7 +266,7 @@ def insert_list_records():
 
                 #statement = 'INSERT INTO list (uid, user_uid, name, notes, created_timestamp, modified_timestamp) VALUES (?, ?, ?, ?, ?, ?)'
                 #cur.execute(statement, (str(uuid4()), user_rows[0][0], name, notes, TIMESTAMP, TIMESTAMP))
-                statement = 'INSERT INTO list (uid, name, notes, created_timestamp, modified_timestamp) VALUES (?, ?, ?, ?, ?)'
+                statement = 'INSERT INTO list (list_id, name, notes, created_timestamp, modified_timestamp) VALUES (?, ?, ?, ?, ?)'
                 cur.execute(statement, (str(uuid4()), name, notes, TIMESTAMP, TIMESTAMP))
 
             cur.execute('COMMIT')
@@ -303,13 +285,13 @@ def insert_list_item_records():
         cur = conn.cursor()
 
         try:
-            cur.execute('SELECT uid, name FROM list')
+            cur.execute('SELECT list_id, name FROM list')
             list_rows = cur.fetchall()
 
-            cur.execute('SELECT uid, name FROM category')
+            cur.execute('SELECT category_id, name FROM category')
             category_rows = cur.fetchall()
 
-            cur.execute('SELECT uid FROM user')
+            cur.execute('SELECT user_id FROM users')
             user_rows = cur.fetchall()
 
             cur.execute('BEGIN')
@@ -350,7 +332,7 @@ def insert_list_item_records():
 
                 #statement = 'INSERT INTO list_item (uid, user_uid, list_uid, category_uid, name, notes, crossed_off, created_timestamp, modified_timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
                 #cur.execute(statement, (str(uuid4()), user_rows[0][0], list_uid, category_uid, name, notes, crossed_off, TIMESTAMP, TIMESTAMP))
-                statement = 'INSERT INTO list_item (uid, list_uid, category_uid, name, notes, crossed_off, created_timestamp, modified_timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+                statement = 'INSERT INTO list_item (list_item_id, list_id, category_id, name, notes, crossed_off, created_timestamp, modified_timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
                 cur.execute(statement, (str(uuid4()), list_uid, category_uid, name, notes, crossed_off, TIMESTAMP, TIMESTAMP))
 
             cur.execute('COMMIT')
@@ -368,7 +350,7 @@ def insert_tag_records():
         conn.isolation_level = None
         cur = conn.cursor()
 
-        cur.execute('SELECT uid FROM user')
+        cur.execute('SELECT user_id FROM users')
         user_rows = cur.fetchall()
 
         try:
@@ -377,7 +359,7 @@ def insert_tag_records():
             for name in TAG_VALUES:
                 #statement = 'INSERT INTO tag (uid, user_uid, name, created_timestamp, modified_timestamp) VALUES (?, ?, ?, ?, ?)'
                 #cur.execute(statement, (str(uuid4()), user_rows[0][0], name, TIMESTAMP, TIMESTAMP))
-                statement = 'INSERT INTO tag (uid, name, created_timestamp, modified_timestamp) VALUES (?, ?, ?, ?)'
+                statement = 'INSERT INTO tag (tag_id, name, created_timestamp, modified_timestamp) VALUES (?, ?, ?, ?)'
                 cur.execute(statement, (str(uuid4()), name, TIMESTAMP, TIMESTAMP))
 
             cur.execute('COMMIT')
@@ -395,13 +377,13 @@ def insert_tag_list_item_records():
         conn.isolation_level = None
         cur = conn.cursor()
 
-        cur.execute('SELECT uid, name FROM list_item')
+        cur.execute('SELECT list_item_id, name FROM list_item')
         list_item_rows = cur.fetchall()
 
-        cur.execute('SELECT uid, name FROM tag')
+        cur.execute('SELECT tag_id, name FROM tag')
         tag_rows = cur.fetchall()
 
-        cur.execute('SELECT uid FROM user')
+        cur.execute('SELECT user_id FROM users')
         user_rows = cur.fetchall()
 
         try:
@@ -427,7 +409,7 @@ def insert_tag_list_item_records():
                 if tag_uid != None:
                     #statement = 'INSERT INTO tag_list_item (uid, user_uid, tag_uid, list_item_uid, created_timestamp, modified_timestamp) VALUES (?, ?, ?, ?, ?, ?)'
                     #cur.execute(statement, (str(uuid4()), user_rows[0][0], tag_uid, list_item_uid, TIMESTAMP, TIMESTAMP))
-                    statement = 'INSERT INTO tag_list_item (uid, tag_uid, list_item_uid, created_timestamp, modified_timestamp) VALUES (?, ?, ?, ?, ?)'
+                    statement = 'INSERT INTO tag_list_item (tag_list_item_id, tag_id, list_item_id, created_timestamp, modified_timestamp) VALUES (?, ?, ?, ?, ?)'
                     cur.execute(statement, (str(uuid4()), tag_uid, list_item_uid, TIMESTAMP, TIMESTAMP))
 
             cur.execute('COMMIT')
@@ -452,7 +434,7 @@ def insert_users_records():
             for user in USER_VALUES:
                 statement = (
                     'INSERT INTO {} ('
-                    '    uid, email, display_name, profile_picture_url,'
+                    '    user_id, email, display_name, profile_picture_url,'
                     '    created_timestamp, modified_timestamp) '
                     'VALUES (?, ?, ?, ?, ?, ?)'.format(TABLE_NAME_USERS)
                 )
