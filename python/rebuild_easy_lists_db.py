@@ -70,10 +70,9 @@ TAG_VALUES = (
 )
 
 USER_VALUES = [{
-    'first_name': 'Koa',
-    'last_name': 'Studio',
     'email': 'koa.studio.software@gmail.com',
-    'last_sign_in_timestamp': int(time.time()),
+    'display_name': 'Koa Studio Software',
+    'profile_picture_url': None,
     'created_timestamp': int(time.time()),
     'modified_timestamp': int(time.time()),
 },]
@@ -130,6 +129,14 @@ COLUMNS_LIST_ITEM = (
     'CONSTRAINT list_FK FOREIGN KEY (list_uid) REFERENCES list (uid) ON DELETE CASCADE,'
     'CONSTRAINT category_FK FOREIGN KEY (category_uid) REFERENCES category (uid)'
 )
+COLUMNS_PROVIDER_LINKS = (
+    'provider TEXT NOT NULL,'
+    'provider_user_id TEXT NOT NULL,'
+    'uid TEXT NOT NULL,'
+    'created_timestamp INTEGER NOT NULL,'
+    'modified_timestamp INTEGER NOT NULL,'
+    'CONSTRAINT provider_links_fk FOREIGN KEY (uid) REFERENCES users (uid) ON DELETE CASCADE'
+)
 COLUMNS_TAG = (
     'uid TEXT NOT NULL,'
     #'user_uid TEXT NOT NULL,'
@@ -155,13 +162,12 @@ COLUMNS_TAG_LIST_ITEM = (
     'CONSTRAINT tag_FK FOREIGN KEY (tag_uid) REFERENCES tag(uid) ON DELETE CASCADE,'
     'CONSTRAINT tag_list_item_list_item_FK FOREIGN KEY (list_item_uid) REFERENCES list_item(uid) ON DELETE CASCADE'
 )
-COLUMNS_USER = (
+COLUMNS_USERS = (
     'uid TEXT NOT NULL,'
-    'first_name TEXT NOT NULL,'
-    'last_name TEXT NOT NULL,'
     'email TEXT NOT NULL,'
-    'api_key TEXT NOT NULL,'
-    'last_sign_in_timestamp INTEGER NOT NULL,'
+    'display_name TEXT,'
+    'profile_picture_url TEXT,'
+    'sync_enabled BOOLEAN NOT NULL DEFAULT FALSE,'
     'created_timestamp INTEGER NOT NULL,'
     'modified_timestamp INTEGER NOT NULL,'
     'CONSTRAINT user_pk PRIMARY KEY (uid)'
@@ -169,9 +175,10 @@ COLUMNS_USER = (
 TABLE_NAME_CATEGORY = r'category'
 TABLE_NAME_LIST = r'list'
 TABLE_NAME_LIST_ITEM = r'list_item'
+TABLE_NAME_PROVIDER_LINKS = r'provider_links'
 TABLE_NAME_TAG = r'tag'
 TABLE_NAME_TAG_LIST_ITEM = r'tag_list_item'
-TABLE_NAME_USER = r'user'
+TABLE_NAME_USERS = r'users'
 TIMESTAMP = int(time.time())
 EASYLISTS_DB_PATH = PROJECT_PATH + r'/data/src/main/assets/easy-lists.db'
 
@@ -237,7 +244,7 @@ def insert_category_records():
         # conn.set_trace_callback(print)
         cur = conn.cursor()
 
-        cur.execute('SELECT uid FROM user')
+        cur.execute('SELECT uid FROM users')
         user_rows = cur.fetchall()
         # print('user_rows', user_rows)
 
@@ -265,7 +272,7 @@ def insert_list_records():
         conn.isolation_level = None
         cur = conn.cursor()
 
-        cur.execute('SELECT uid FROM user')
+        cur.execute('SELECT uid FROM users')
         #user_rows = cur.fetchall()
 
         try:
@@ -432,8 +439,8 @@ def insert_tag_list_item_records():
 
 
 #region insert_user_records()
-def insert_user_records():
-    print('Inserting into table: {}'.format(TABLE_NAME_USER))
+def insert_users_records():
+    print('Inserting into table: {}'.format(TABLE_NAME_USERS))
     with sqlite3.connect(EASYLISTS_DB_PATH) as conn:
         conn.isolation_level = None
         # conn.set_trace_callback(print)
@@ -443,21 +450,36 @@ def insert_user_records():
             cur.execute('BEGIN')
 
             for user in USER_VALUES:
-                statement = 'INSERT INTO user (uid, first_name, last_name, email, api_key, last_sign_in_timestamp, created_timestamp, modified_timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
-                cur.execute(statement, (str(uuid4()), user['first_name'], user['last_name'], user['email'], str(uuid4()), TIMESTAMP, TIMESTAMP, TIMESTAMP))
+                statement = (
+                    'INSERT INTO {} ('
+                    '    uid, email, display_name, profile_picture_url,'
+                    '    created_timestamp, modified_timestamp) '
+                    'VALUES (?, ?, ?, ?, ?, ?)'.format(TABLE_NAME_USERS)
+                )
+                cur.execute(statement, (str(uuid4()),
+                                        user['email'],
+                                        user['display_name'],
+                                        user['profile_picture_url'],
+                                        TIMESTAMP,
+                                        TIMESTAMP))
 
             cur.execute('COMMIT')
         except conn.Error:
-            print('Insert user failed!')
+            print('Insert users failed!')
             print(conn.Error)
             cur.execute('ROLLBACK')
 #endregion
 
 
 if __name__ == '__main__':
-    drop_table(TABLE_NAME_USER)
-    create_table(TABLE_NAME_USER, COLUMNS_USER)
-    insert_user_records()
+    drop_table(TABLE_NAME_USERS)
+    create_table(TABLE_NAME_USERS, COLUMNS_USERS)
+    insert_users_records()
+    print('')
+
+    drop_table(TABLE_NAME_PROVIDER_LINKS)
+    create_table(TABLE_NAME_PROVIDER_LINKS, COLUMNS_PROVIDER_LINKS)
+    # insert_provider_links_records()
     print('')
 
     drop_table(TABLE_NAME_CATEGORY)
