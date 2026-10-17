@@ -2,4 +2,4 @@
 
 #>
 
-.\Start-AndroidEmulator.ps1 -Mode "quick" -AutoStartAvdName "Pixel_Tablet"
+.\Start-AndroidEmulator.ps1 -Mode "quick" -AutoStartAvdName "Moon_Reader_Pro_Tablet"
