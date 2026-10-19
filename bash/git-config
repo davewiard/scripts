@@ -1,0 +1,102 @@
+#!/usr/bin/bash
+
+read -r -d '' JSON_CONFIG << 'EOF'
+{
+  "global": {
+    "alias.lg": "log --graph --abbrev-commit --decorate --date=format:'%b %d, %Y' --format=format:'%C(cyan)%h%C(reset) %C(bold magenta)%ad%C(reset) %C(white)%s%C(reset) %C(dim white)(%an)%C(reset)%C(bold yellow)%d%C(reset)' --all",
+    "alias.st": "status --short --branch",
+    "alias.unstage": "restore --staged",
+    "color.ui": "auto",
+    "core.autocrlf": "true",
+    "core.ignorecase": "false",
+    "fetch.prune": "true",
+    "pull.ff": "only",
+    "push.autoSetupRemote": "true",
+    "push.default": "current",
+    "user.email": "",
+    "user.name": ""
+  },
+  "repo": {
+    "color.ui": "auto",
+    "core.autocrlf": "true",
+    "core.ignorecase": "false",
+    "fetch.prune": "true",
+    "pull.ff": "only",
+    "user.email": "",
+    "user.name": ""
+  }
+}
+EOF
+
+
+function set_config() {
+    level=${1:-""}
+
+    if [[ $level == "global" || $level == "repo" ]]; then
+        printf "\nSetting $level config...\n"
+        for key in $(jq --arg level "$level" -r '.[$level] | keys[]' <<< "$JSON_CONFIG"); do
+            value=$(jq --arg k "$key" --arg level "$level" -r '.[$level][$k]' <<< "$JSON_CONFIG")
+            if [[ ( $key == "user.email" || $key == "user.name" ) && -z $value ]]; then
+                printf "Skipping $level $key, no value found\n"
+                continue
+            fi
+
+            if [[ $level == "global" ]]; then
+                printf "Setting global $key to $value\n"
+                git config --global "$key" "$value"
+            else
+                printf "Setting repo $key to $value\n"
+                git config "$key" "$value"
+            fi
+        done
+    else
+        printf "Skipping settings, level (global vs. repo) not given.\n"
+    fi
+}
+
+
+LEVEL="all"
+if [[ $1 == "--repo" ]]; then
+    LEVEL="repo"
+elif [[ $1 == "--global" ]]; then
+    LEVEL="global"
+fi
+
+
+# prompt for values, blank values mean to skip setting these values
+if [[ $LEVEL == "all" || $LEVEL == "global" ]]; then
+    printf "Value for global user.email: "
+    read global_user_email
+
+    printf "Value for global user.name: "
+    read global_user_name
+
+    JSON_CONFIG=$(echo "$JSON_CONFIG" | jq --arg email "$global_user_email" '.global["user.email"] = $email')
+    JSON_CONFIG=$(echo "$JSON_CONFIG" | jq --arg name "$global_user_name" '.global["user.name"] = $name')
+fi
+
+
+# prompt for values, blank values mean to skip setting these values
+if [[ $LEVEL == "all" || $LEVEL == "repo" ]]; then
+    printf "Value for repo user.email: "
+    read repo_user_email
+
+    printf "Value for repo user.name: "
+    read repo_user_name
+
+    JSON_CONFIG=$(echo "$JSON_CONFIG" | jq --arg email "$repo_user_email" '.repo["user.email"] = $email')
+    JSON_CONFIG=$(echo "$JSON_CONFIG" | jq --arg name "$repo_user_name" '.repo["user.name"] = $name')
+fi
+
+
+# global settings
+if [[ $LEVEL == "all" || $LEVEL == "global" ]]; then
+    set_config "global"
+fi
+
+
+# repository settings
+if [[ $LEVEL == "all" || $LEVEL == "repo" ]]; then
+    set_config "repo"
+fi
+
