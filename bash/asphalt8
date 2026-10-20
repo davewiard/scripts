@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# Configuration variables
+SOUND_VOLUME_VIEW="/mnt/c/Program Files/soundvolumeview-x64/SoundVolumeView.exe"
+PROCESS_NAME="Asphalt8.exe"
+TARGET_VOLUME="10"
+DELAY=5
+
+# Fetch the UWP install location using PowerShell (since Get-AppxPackage is Windows-specific)
+# and strip the Windows carriage return (\r) for Bash compatibility.
+ASPHALT_PATH=$(powershell.exe -NoProfile -Command "(Get-AppxPackage *Asphalt*).InstallLocation" | tr -d '\r')
+
+if [ -z "$ASPHALT_PATH" ]; then
+    echo "Error: Could not find Asphalt installation path."
+    exit 1
+fi
+
+# Convert Windows path style to a format PowerShell's Start-Process expects
+FULL_GAME_PATH="$ASPHALT_PATH\\$PROCESS_NAME"
+
+echo "Starting Asphalt 8..."
+powershell.exe -NoProfile -Command "Start-Process -FilePath '$FULL_GAME_PATH'"
+
+# Wait for the game to boot up
+sleep "$DELAY"
+
+# Main monitoring loop
+while true; do
+    # Check if the process is running using Windows tasklist directly from Bash
+    if tasklist.exe 2>/dev/null | grep -qi "$PROCESS_NAME"; then
+        # Execute SoundVolumeView directly from the mounted Windows path in WSL
+        "$SOUND_VOLUME_VIEW" /SetVolume "$PROCESS_NAME" "$TARGET_VOLUME"
+        sleep "$DELAY"
+    else
+        echo "Asphalt 8 has closed. Exiting script."
+        break
+    fi
+done
+
