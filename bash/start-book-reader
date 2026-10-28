@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# Configuration
+AVD_NAME="Moon_Reader_Pro_Tablet"
+EMULATOR_PATH="/mnt/c/Users/$(powershell.exe -NoProfile -Command "[Environment]::UserName" | tr -d '\r')/AppData/Local/Android/Sdk/emulator/emulator.exe"
+ADB_PATH="/mnt/c/Users/$(powershell.exe -NoProfile -Command "[Environment]::UserName" | tr -d '\r')/AppData/Local/Android/Sdk/platform-tools/adb.exe"
+
+echo "[INFO] Initializing ADB server..."
+"$ADB_PATH" start-server >/dev/null 2>&1
+sleep 2
+
+# Verify AVD exists (stripping out Windows \r carriage returns cleanly)
+echo "[INFO] Verifying AVD: $AVD_NAME..."
+AVAILABLE_AVDS=$("$EMULATOR_PATH" -list-avds 2>/dev/null | tr -d '\r')
+
+if ! echo "$AVAILABLE_AVDS" | grep -qx "$AVD_NAME"; then
+    echo "[ERROR] AVD '$AVD_NAME' not found."
+    echo "[INFO] Available AVDs:"
+    echo "$AVAILABLE_AVDS"
+    read ans
+    exit 1
+fi
+
+# Launch emulator with quick start parameters
+echo "[INFO] Launching emulator '$AVD_NAME'..."
+"$EMULATOR_PATH" \
+    -avd "$AVD_NAME" \
+    -no-snapshot-load \
+    -no-snapshot-save \
+    -gpu host \
+    -memory 2048 \
+    -cores 4 \
+    -dns-server 8.8.8.8 \
+    -netdelay none \
+    -netspeed full &
+
+# Detach from script shell so it keeps running independently
+#disown
+
+#echo "[SUCCESS] Emulator process triggered in the background."
+
+echo "Press enter to continue ..."
+read ans
