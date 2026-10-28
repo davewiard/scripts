@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# Configuration variables
+SOUND_VOLUME_VIEW="/mnt/c/Program Files/soundvolumeview-x64/SoundVolume"
+PROCESS_NAME="firefox.exe"
+FULL_PATH="/mnt/c/Program Files/Mozilla Firefox/${PROCESS_NAME}"
+TARGET_VOLUME="50"
+
+echo "Starting Firefox..."
+cmd.exe /c start firefox "https://gmail.com/"
+
+"$SOUND_VOLUME_VIEW" /SetVolume "$PROCESS_NAME" "$TARGET_VOLUME"
