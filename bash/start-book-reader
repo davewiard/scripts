@@ -25,10 +25,9 @@ fi
 echo "[INFO] Launching emulator '$AVD_NAME'..."
 "$EMULATOR_PATH" \
     -avd "$AVD_NAME" \
-    -no-snapshot-load \
-    -no-snapshot-save \
+    -skin 1200x1920 \
     -gpu host \
-    -memory 2048 \
+    -memory 4096 \
     -cores 4 \
     -dns-server 8.8.8.8 \
     -netdelay none \
