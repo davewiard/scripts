@@ -1,0 +1,120 @@
+#
+# kswc
+# An alternative to "gswc" that automatically formats the parameter passed in,
+# replaces spaces and special characters with '-', makes it all lowercase
+#
+function kswc() {
+    issue=$1
+    name=$2
+    branch="${name//[[:punct:]]/_}"
+    branch="${branch//[^[:alnum:]]/_}"
+    branch="${branch:l}"
+    git switch --create "$issue-$branch"
+}
+
+
+#
+# pmd
+# pmd deletes the identified service from pm2.
+#
+function pmd() {
+    id=$1
+    case $id in
+        admin-next|next|node)
+            id="easy-lists-$id"
+            ;;
+
+        *)
+            # $1, if set, might be a numeric pm2 identifier so just
+            # take it as-is and use it
+            if [[ -n $1 ]]; then
+                id=$1
+            else
+                pmd admin-next && pmd next && pmd node
+            fi
+            ;;
+    esac
+
+    pm2 stop $id && pm2 delete $id
+}
+
+#
+# pml
+# pml starts the pm2 log. If an identifier is given it will show only
+# the log for that one identifier, otherwise it will show all logs.
+#
+function pml() {
+    id=$1
+    case $id in
+        next|node)
+            id="easy-lists-$id"
+            ;;
+
+        *)
+            ;;
+    esac
+    pm2 log $id
+}
+
+#
+# pmls
+# pmls shows the list of currently running pm2 services
+#
+function pmls() {
+    pm2 ls
+}
+
+#
+# pmr
+# pmr is nothing more than a shorthand for `pm2 restart project` but
+# based on the project name, moves to the appropriate directory first
+#
+function pmr() {
+    short_project=$1
+    case $short_project in
+        admin-next|next)
+            project="easy-lists-$short_project"
+            cd $HOME/projects/$project
+            pm2 stop $project && pm2 delete $project && pm2 start npm --name $project -- run dev
+            ;;
+
+        node)
+            project="easy-lists-$short_project"
+            cd $HOME/projects/$project
+            pm2 stop $project && pm2 delete $project && npm run start
+            ;;
+
+        *)
+            printf "Usage: pmr <project>\n"
+            return
+            ;;
+    esac
+}
+
+#
+# pms
+# pms is nothing more than a shorthand for `pm2 start project` but
+# based on the project name, moves to the appropriate directory first
+#
+function pms() {
+    short_project=$1
+    case $short_project in
+        admin-next|next)
+            project="easy-lists-$short_project"
+            cd $HOME/projects/$project
+            pm2 start npm --name $project -- run dev
+            ;;
+
+        node)
+            project="easy-lists-$short_project"
+            cd $HOME/projects/$project
+            npm run start
+            ;;
+
+        *)
+            pms node && pms next && pms admin-next
+            ;;
+    esac
+
+    cd - >/dev/null 2>&1
+}
