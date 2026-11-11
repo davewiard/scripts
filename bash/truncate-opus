@@ -1,0 +1,16 @@
+#!/usr/bin/bash
+
+offset=$1
+duration=$2
+file=$3
+
+if [[ -z $offset || -z $duration || -z $file ]]; then
+    printf "Usage: ${0##*/} <offset> <duration> <file>\n"
+    printf "    offset      number of seconds to start fade\n"
+    printf "    duration    number of seconds fade should last\n"
+    printf "    file        input file name\n"
+    exit
+fi
+
+ffmpeg -i "$file" -af "afade=t=out:st=$offset:d=$duration" -c:a libopus -vbr on -map_metadata 0 -map 0:a "$file.new"
+
