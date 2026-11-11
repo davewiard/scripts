@@ -12,5 +12,17 @@ if [[ -z $offset || -z $duration || -z $file ]]; then
     exit
 fi
 
-ffmpeg -i "$file" -af "afade=t=out:st=$offset:d=$duration" -c:a libopus -vbr on -map_metadata 0 -map 0:a "$file.new"
+title="${file%%.opus}"
+ext="opus"
+
+trunc_time=$(date -u -d "@$((offset + duration))" +%H:%M:%S)
+
+ffmpeg -i "$file"                               \
+    -to "$trunc_time"                           \
+    -af "afade=t=out:st=$offset:d=$duration"    \
+    -c:a libopus                                \
+    -vbr on                                     \
+    -map_metadata 0                             \
+    -map 0:a                                    \
+    "$title (Truncated).$ext"
 
