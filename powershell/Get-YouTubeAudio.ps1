@@ -12,21 +12,24 @@ Param(
 $outputType = "opus"
 $downloadsPath = (New-Object -ComObject Shell.Application).Namespace('shell:Downloads').Self.Path
 
-while ($url -eq "") {
+do {
     $url = (Read-Host "YouTube URL").Trim()
-}
+    if ($url -eq "") {
+        Exit
+    }
 
-Start-Process -Wait -FilePath "yt-dlp" -ArgumentList            `
-    "-x",                                                       `
-    "--audio-quality 0",                                        `
-    "--audio-format $outputType",                               `
-    "--windows-filenames",                                      `
-    "$url"
+    Start-Process -Wait -FilePath "yt-dlp" -ArgumentList            `
+        "-x",                                                       `
+        "--audio-quality 0",                                        `
+        "--audio-format $outputType",                               `
+        "--windows-filenames",                                      `
+        "$url"
 
-if ($?) {
-    Move-Item -Path ".\*.opus" -Destination $downloadsPath
-} else {
-    Write-Output "Download failed"
-}
+    if ($?) {
+        Move-Item -Path ".\*.opus" -Destination $downloadsPath
+    } else {
+        Write-Output "Download failed"
+    }
 
-#$a = Read-Host "Press enter to continue"
+    $url = ""
+} while ($url -eq "")
